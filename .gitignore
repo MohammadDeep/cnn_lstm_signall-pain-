@@ -1,0 +1,10 @@
+# مثال‌ها
+*.log
+*.tmp
+.env
+__pycache__/
+.ipynb_checkpoints/
+data/           # کل پوشه
+models/*.pt     # فقط وزن‌های PyTorch
+!data/.keep     # این فایل را علی‌رغم ignore نگه دار
+.vscode
