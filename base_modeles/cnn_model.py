@@ -22,15 +22,15 @@ class MODEL_CNN1D(nn.Module):
         z = self.block1(x)        # (B,hid,T)
         z = self.head(z)          # (B,n_classes,T)
         return z.mean(-1)         # logits: (B,n_classes)
+if __name__ == "__main__":
+    import torch
+    from torchinfo import summary
 
-import torch
-from torchinfo import summary
+    # مدلِ خودت
+    model = MODEL_CNN1D(in_ch=4, n_classes=6, hid=32, k1=7, k2=5)
 
-# مدلِ خودت
-model = MODEL_CNN1D(in_ch=4, n_classes=6, hid=32, k1=7, k2=5)
-
-# ابعاد ورودی نمونه: (Batch, C_in, T)
-B, C_in, T = 2, 4, 512
-summary(model, input_size=(B, C_in, T),
-        col_names=("input_size","output_size","num_params","kernel_size","trainable"),
-        depth=3)
+    # ابعاد ورودی نمونه: (Batch, C_in, T)
+    B, C_in, T = 2, 4, 512
+    summary(model, input_size=(B, C_in, T),
+            col_names=("input_size","output_size","num_params","kernel_size","trainable"),
+            depth=3)

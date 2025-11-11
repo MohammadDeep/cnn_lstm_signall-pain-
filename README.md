@@ -57,21 +57,32 @@ pip install torch numpy scikit-learn
 
 ```python
 import torch
-from base_modeles.cnn_model import CNN1DClassifier           # اگر موجود است
-from base_modeles.lstm_model import LSTMClassifier           # اگر موجود است
-from base_modeles.cnn_lstm_model import CNNLSTMClassifier    # اگر موجود است
+from base_modeles.cnn_lstm_model import CNNLSTM1D    # اگر موجود است
 
-# مثال LSTM (many-to-one)
-model = LSTMClassifier(
-    input_size=F,        # تعداد ویژگی در هر گام زمانی
-    hidden_size=128,
-    n_classes=num_classes,
-    num_layers=1,
-    bidirectional=True,
-    dropout=0.0,
-    aggregation='last',  # 'last' یا 'mean'
-    batch_first=True
+B, C_in, T = 4, 4, 256
+num_cls = 6
+
+model = CNNLSTM1D(
+    in_ch=C_in, n_classes=num_cls,
+    cnn_channels=(32, 64), kernel_sizes=(7, 5),
+    lstm_hidden=64, lstm_layers=1,
+    bidirectional=True, dropout=0.3, aggregation='last'
 )
+
+x = torch.randn(B, C_in, T)
+out = model(x)
+
+
+# تست میانگین‌گیری زمانی
+model2 = CNNLSTM1D(
+    in_ch=C_in, n_classes=num_cls,
+    cnn_channels=(16,), kernel_sizes=(7,),
+    lstm_hidden=32, lstm_layers=2,   # dropout بین لایه‌ها فعال می‌شود
+    bidirectional=False, dropout=0.2, aggregation='mean'
+)
+out2 = model2(x)
+    
+
 ```
 
 ### 2) داده‌ی ساختگی برای تست سریع

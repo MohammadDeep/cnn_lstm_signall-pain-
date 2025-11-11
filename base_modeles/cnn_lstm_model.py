@@ -2,61 +2,13 @@
 import torch
 import torch.nn as nn
 
-# === از کد خودت: ConvBNAct1d ===
-class ConvBNAct1d(nn.Module):
-    def __init__(self, in_ch, out_ch, k=7, s=1, d=1, groups=1, act='relu'):
-        super().__init__()
-        p = (k // 2) * d  # same-ish برای S=1
-        self.conv = nn.Conv1d(in_ch, out_ch, k, stride=s, padding=p,
-                              dilation=d, groups=groups, bias=False)
-        self.bn   = nn.BatchNorm1d(out_ch)
-        self.act  = nn.ReLU(inplace=True) if act == 'relu' else nn.Identity()
-    def forward(self, x):
-        return self.act(self.bn(self.conv(x)))
-
-
-# === از کد خودت: LSTMClassifier (نسخهٔ هم‌طول) ===
-class LSTMClassifier(nn.Module):
-    def __init__(self,
-                 input_size: int,
-                 hidden_size: int,
-                 n_classes: int,
-                 num_layers: int = 1,
-                 bidirectional: bool = True,
-                 dropout: float = 0.0,
-                 aggregation: str = 'last',
-                 batch_first: bool = True):
-        super().__init__()
-        self.batch_first = batch_first
-        self.aggregation = aggregation
-        self.num_dirs = 2 if bidirectional else 1
-        self.hidden_size = hidden_size
-
-        self.lstm = nn.LSTM(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            bidirectional=bidirectional,
-            dropout=(dropout if num_layers > 1 else 0.0),
-            batch_first=batch_first,
-        )
-        self.head = nn.Linear(self.num_dirs * hidden_size, n_classes)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        self.lstm.flatten_parameters()
-        y, (hn, cn) = self.lstm(x)
-        if self.aggregation == 'last':
-            nl = self.lstm.num_layers
-            nd = self.num_dirs
-            B  = x.size(0)
-            h_last = hn.view(nl, nd, B, self.hidden_size)[-1]   # (nd, B, H)
-            feats  = h_last.transpose(0, 1).reshape(B, nd * self.hidden_size)
-        elif self.aggregation == 'mean':
-            feats = y.mean(dim=1)
-        else:
-            raise ValueError("aggregation باید 'last' یا 'mean' باشد.")
-        logits = self.head(feats)
-        return logits
+import torch
+try:
+    from cnn_model import ConvBNAct1d           # اگر موجود است
+    from lstm_model import LSTM_model           # اگر موجود است
+except:
+    from base_modeles.cnn_model import ConvBNAct1d           # اگر موجود است
+    from base_modeles.lstm_model import LSTM_model   
 
 
 # === مدل ترکیبی: CNN → LSTM ===
@@ -89,7 +41,7 @@ class CNNLSTM1D(nn.Module):
 
         # LSTM head: input_size = آخرین تعداد کانال‌های CNN
         feat_dim = cnn_channels[-1]
-        self.lstm_head = LSTMClassifier(
+        self.lstm_head = LSTM_model(
             input_size=feat_dim,
             hidden_size=lstm_hidden,
             n_classes=n_classes,

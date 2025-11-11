@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-class LSTMClassifier(nn.Module):
+class LSTM_model(nn.Module):
     """
     LSTM برای طبقه‌بندی توالی‌های هم‌طول.
     ورودی: x با شکل (B, T, F)  (batch_first=True)
